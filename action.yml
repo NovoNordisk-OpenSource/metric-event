@@ -1,0 +1,37 @@
+name: 'QMS metric event'
+description: 'Sends the given a metric event to the provided collector endpoint'
+inputs:
+  collector_endpoint:
+    required: true
+    description: 'The endpoint of the collector, e.g. https://domain/some/path'
+    default: ''
+  type:
+    required: true
+    description: 'The type of the event, e.g. deployment_begin, deployment_complete, etc.'
+    default: ''
+  project:
+    required: true
+    description: 'The project name with no spaces, e.g. my-cli'
+    default: ''
+  pipeline_id:
+    required: true
+    description: 'The pipeline identifer, e.g. my-cli-prod'
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Register metric event
+      shell: bash
+      run: |
+        curl -XPOST \
+          "${{ inputs.collector_endpoint }}" \
+          --header "Content-Type: application/json" \
+          --data-raw '
+            {
+                "type": "${{ inputs.type }}",
+                "project": "${{ inputs.project }}",
+                "pipeline_id": "${{ inputs.pipeline_id }}",
+                "deployment_id": "${{ github.run_id }}",
+                "succeeded": true
+            }'
